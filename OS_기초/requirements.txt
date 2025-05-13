@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+azure-cognitiveservices-speech
+python-dotenv
+Werkzeug
+Jinja2
