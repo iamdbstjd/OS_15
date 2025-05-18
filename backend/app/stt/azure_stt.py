@@ -1,10 +1,12 @@
-
 import os
 import time
 import azure.cognitiveservices.speech as speechsdk
+from dotenv import load_dotenv
+load_dotenv()
 
-AZURE_SPEECH_KEY = "실제 키 값" #카톡으로 보내드리겠습니다
-AZURE_SPEECH_REGION = "koreacentral" 
+import os
+AZURE_SPEECH_KEY = os.getenv("AZURE_SPEECH_KEY")
+AZURE_SPEECH_REGION = os.getenv("AZURE_SPEECH_REGION")
 
 # Speech SDK 설정 객체 초기화
 speech_config = None

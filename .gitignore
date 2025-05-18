@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.env
+*.log
+
+# Virtual environments
+venv/
+.env/
+
+# FastAPI uploads/temp
+uploaded_audio_files/
+*.wav
+
+# OS & editor
+.DS_Store
+.vscode/
+.idea/
+
+# Pytest
+.pytest_cache/
+
+# 환경 파일
+.env

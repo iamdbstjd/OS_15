@@ -1,5 +1,6 @@
 fastapi
 uvicorn[standard]
+python-multipart
 azure-cognitiveservices-speech
 python-dotenv
 Werkzeug

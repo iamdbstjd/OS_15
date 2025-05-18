@@ -7,7 +7,7 @@ from fastapi.concurrency import run_in_threadpool # 동기 함수를 비동기�
 from werkzeug.utils import secure_filename # 안전한 파일명 처리 (선택적이지만 권장)
 
 # Main 패키지에서 Azure STT 함수 가져오기
-from Main.Azure_STT import transcribe_audio_with_azure # Azure Speech Service 사용하는 함수
+from stt.azure_stt import transcribe_audio_with_azure # Azure Speech Service 사용하는 함수
 
 # --- FastAPI 앱 및 기본 설정 ---
 app = FastAPI(title="강의 음성 STT 서비스 (Azure)")
