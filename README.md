@@ -5,23 +5,63 @@
 
 <br><br>
 
-## 프로젝트 소개
- 이 프로젝트는 사용자가 음성 파일을 업로드하면 이를 텍스트로 변환한 뒤, 그 내용을 기반으로 자동으로 퀴즈를 생성해주는 웹 기반 서비스이다. STT(Speech to text)를 담당하는 오픈소스인 '**Whisper**'와 텍스트를 기반으로 퀴즈를 생성해주는 오픈소스인 '**Text2Question**'를 조합했다. 
+## 이곳은 "backend" branch입니다.
 
 <br><br>
 
-## 주요 기능
-- 🎙 음성 파일 업로드
-- 📝 Whisper를 통한 음성 → 텍스트 자동 변환
-- 📚 Text2Question을 통한 퀴즈 자동 생성
-- 💡 생성된 퀴즈를 웹에서 바로 확인
-- 💾 (예정) 생성된 퀴즈와 텍스트를 과목별 분류
-
+## 디렉토리 구조
+<pre>
+OS_15
+│  .gitignore
+│  README.md
+│
+└─backend
+    │  .env
+    │  requirements.txt
+    │
+    └─app
+        │  main.py
+        │  __init__.py
+        │
+        ├─stt
+        │      azure_stt.py
+        │
+        └─summary
+                bart_summary.py
+</pre>
 <br><br>
 
-## 설치 및 실행 방법
-```bash
+## 서버 실행 방법
+
+1. 프로젝트 clone
+```bash 
 git clone https://github.com/iamdbstjd/OS_15
-cd main
-...
+cd OS_15/backend/app
 ```
+2. .env 환경 변수 설정
+```bash
+# .env에 저희 카톡에 있는 KEY를 추가하셔야 합니다. (""로 안 감싸도 됨)
+AZURE_SPEECH_KEY="저희 카톡에 있는 KEY"
+```
+3. 서버 실행
+```bash
+uvicorn main:app --reload
+```
+서버 실행 후 브라우저에서 http://127.0.0.1:8000/docs를 입력하면 API 스펙과 파일 업로드 테스트를 UI로 직접 할 수 있습니다.
+
+파일 업로드 후 응답 데이터(JSON)를 바로 확인할 수 있습니다.
+
+<br><br>
+
+##  현재 구현된 기능
+
+- [✅] 음성 파일 업로드 기능
+- [✅] Azure STT 연동 및 텍스트 변환
+- [✅] 텍스트 요약 (BART 모델)
+- [❌] 퀴즈 자동 생성 (미완)
+
+## 진행 상황 공유
+- 음성 파일 업로드 및 텍스트 요약까지 수행
+- 그러나 업로드하면 (PXERR_INVALID_HEADER) 에러가 생기는 버그 있음
+- 반환값: JSON(transcription, summary, (예정)quiz)
+
