@@ -2,15 +2,13 @@ import os
 import time
 import azure.cognitiveservices.speech as speechsdk
 from dotenv import load_dotenv
-load_dotenv()
 
-import os
+load_dotenv()
 AZURE_SPEECH_KEY = os.getenv("AZURE_SPEECH_KEY")
 AZURE_SPEECH_REGION = os.getenv("AZURE_SPEECH_REGION")
 
 # Speech SDK 설정 객체 초기화
 speech_config = None
-
 
 if AZURE_SPEECH_KEY and AZURE_SPEECH_REGION:
     try:
@@ -26,10 +24,8 @@ else:
     print("     실제 발급받은 정확한 정보를 입력해주세요. API 호출이 실패합니다.")
     speech_config = None # 이 경우에도 None으로 명시
 
-
 # --- 이하 transcribe_audio_with_azure 함수 및 테스트 코드는 이전과 동일 ---
 def transcribe_audio_with_azure(audio_filepath: str) -> str | None:
-    global speech_config
     if speech_config is None:
         error_msg = "오류: Azure SpeechConfig가 초기화되지 않았습니다. 파일 상단의 구독 키와 지역 설정을 확인해주세요."
         print(f"[Azure Speech] {error_msg}")
@@ -52,8 +48,10 @@ def transcribe_audio_with_azure(audio_filepath: str) -> str | None:
         nonlocal all_recognized_text_parts
         if evt.result.reason == speechsdk.ResultReason.RecognizedSpeech:
             all_recognized_text_parts.append(evt.result.text)
+            
         elif evt.result.reason == speechsdk.ResultReason.NoMatch:
             print("음성을 인식하지 못했습니다 (NOMATCH).")
+            
         elif evt.result.reason == speechsdk.ResultReason.Canceled:
             cancellation_details = evt.result.cancellation_details
             print(f"음성 인식이 취소되었습니다: {cancellation_details.reason}")
