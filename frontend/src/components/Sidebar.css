@@ -1,0 +1,43 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 220px;
+  height: 100vh;
+  background-color: white;
+  padding: 20px;
+  border-right: 1px solid #ddd;
+  box-sizing: border-box; 
+  z-index: 1000;          
+}
+
+.logo {
+  font-size: 1.2rem;
+  color: #5a00e0;
+  margin-bottom: 2rem;
+}
+
+.nav-link {
+  display: block;
+  margin: 12px 0;
+  color: #333;
+  text-decoration: none;
+}
+
+.nav-link.active {
+  font-weight: bold;
+  color: #5a00e0;
+}
+
+.logout {
+  margin-top: 30px;
+  background: none;
+  border: none;
+  color: gray;
+  cursor: pointer;
+}
+
+.main-content {
+  margin-left: 220px;
+  padding: 20px;
+}
