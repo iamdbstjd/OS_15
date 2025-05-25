@@ -30,8 +30,6 @@ function UploadPage() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { status, errorMessage } = state;
 
-  const isTranscribed = status === 'done';
-
   useEffect(() => {
     const savedStatus = localStorage.getItem('status');
     if (savedStatus === 'loading' || savedStatus === 'done') {
