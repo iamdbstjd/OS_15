@@ -7,9 +7,11 @@ from fastapi.concurrency import run_in_threadpool
 from werkzeug.utils import secure_filename
 from pydub import AudioSegment
 
-from stt.azure_stt import transcribe_audio_with_azure
-from summary.bart_summary import summarize_text
+from stt.azure_stt import transcribe_multiple_files
+from stt.audio_splitter import split_audio
+from summary.koBart_summary import summarize_long_text
 from preprocess.text_utils import preprocess_text_for_summary
+
 
 app = FastAPI(title="강의 음성 STT 서비스 (Azure)")
 
@@ -63,11 +65,12 @@ async def process_lecture_audio(audio_file: UploadFile = File(...)):
     converted_temp_file_path = None
 
     try:
+        # 1. 오디오 파일 저장
         with open(original_saved_filepath, "wb") as buffer:
             shutil.copyfileobj(audio_file.file, buffer)
 
+        # 2. mp3 → wav 변환
         file_extension = os.path.splitext(original_filename)[1].lower()
-
         if file_extension == ".mp3":
             print(f"[PROCESS] MP3 파일 감지: {original_filename}. WAV로 변환합니다...")
             converted_temp_file_path = await run_in_threadpool(
@@ -76,22 +79,29 @@ async def process_lecture_audio(audio_file: UploadFile = File(...)):
             if not converted_temp_file_path:
                 raise HTTPException(status_code=500, detail="MP3를 WAV로 변환하는 데 실패했습니다.")
             filepath_for_stt = converted_temp_file_path
-        
-        transcribed_text = await run_in_threadpool(transcribe_audio_with_azure, filepath_for_stt)
 
+        # 3. 오디오 분할
+        audio_chunks = await run_in_threadpool(split_audio, filepath_for_stt, UPLOAD_AUDIO_DIR)
+        if not audio_chunks:
+            raise HTTPException(status_code=500, detail="오디오 분할에 실패했습니다.")
+
+        # 4. 조각별 STT 수행
+        transcribed_text = await run_in_threadpool(transcribe_multiple_files, audio_chunks)
         if not transcribed_text or ("오류:" in str(transcribed_text)):
             error_detail = transcribed_text if transcribed_text else "STT 처리 중 알 수 없는 오류 발생 또는 빈 결과"
             raise HTTPException(status_code=500, detail=f"STT 처리 실패: {error_detail}")
 
+        # 5. 전처리
         print("[Main] STT 완료. 텍스트 전처리 시작...")
         preprocessed_text = await run_in_threadpool(preprocess_text_for_summary, transcribed_text)
         print("[Main] 텍스트 전처리 완료.")
 
-        summary_text = await run_in_threadpool(summarize_text, preprocessed_text) # 전처리된 텍스트 사용
-        
+        # 6. 요약
+        summary_text = await run_in_threadpool(summarize_long_text, preprocessed_text)
         if "요약 중 오류 발생:" in str(summary_text):
-             raise HTTPException(status_code=500, detail=f"요약 처리 실패: {summary_text}")
+            raise HTTPException(status_code=500, detail=f"요약 처리 실패: {summary_text}")
 
+        # 7. (임시) 퀴즈 결과
         quizzes_list = [
             {"type": "O/X", "question": "이곳에 O/X 문제가 표시됩니다. (아직 구현되지 않음)", "answer": "미정"},
             {"type": "빈칸", "question": "이곳에 _______ 문제가 표시됩니다. (아직 구현되지 않음)", "answer": "미정"},
@@ -103,6 +113,7 @@ async def process_lecture_audio(audio_file: UploadFile = File(...)):
             "summary": summary_text,
             "quizzes": quizzes_list,
         }
+
     except HTTPException:
         raise
     except Exception as e:

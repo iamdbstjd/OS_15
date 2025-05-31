@@ -18,4 +18,4 @@ uploaded_audio_files/
 .pytest_cache/
 
 # 환경 파일
-# .env
+.env
