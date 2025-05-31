@@ -31,7 +31,6 @@ def transcribe_audio_with_azure(audio_filepath: str) -> str | None:
         print(f"[Azure Speech] {error_msg}")
         return error_msg # 오류 메시지 반환 (또는 API 호출 실패를 명시)
     
-    # ... (이하 함수 내용은 이전 답변과 동일하게 유지) ...
     if not os.path.exists(audio_filepath):
         error_msg = f"오류: 음성 파일 경로를 찾을 수 없습니다 - {audio_filepath}"
         print(f"[Azure Speech] {error_msg}")
@@ -101,6 +100,22 @@ def transcribe_audio_with_azure(audio_filepath: str) -> str | None:
     full_transcribed_text = " ".join(all_recognized_text_parts)
     print("[Azure Speech] 음성 파일 처리 완료.")
     return full_transcribed_text
+
+def transcribe_multiple_files(file_paths: list[str]) -> str:
+    """
+    여러 오디오 파일을 순차적으로 Azure STT로 처리한 후 텍스트를 하나로 병합하여 반환합니다.
+    """
+    all_text = []
+    for idx, path in enumerate(file_paths):
+        print(f"[Azure Batch STT] ({idx+1}/{len(file_paths)}) 처리 중: {path}")
+        result = transcribe_audio_with_azure(path)
+        if result and not result.startswith("오류:"):
+            all_text.append(result)
+        else:
+            print(f"[Azure Batch STT] 텍스트 변환 실패 또는 오류 발생: {result}")
+    combined_text = " ".join(all_text)
+    print("[Azure Batch STT] 전체 파일 처리 완료.")
+    return combined_text.strip()
 
 
 if __name__ == '__main__':
