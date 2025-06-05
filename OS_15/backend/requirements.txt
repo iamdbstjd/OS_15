@@ -1,0 +1,17 @@
+azure-cognitiveservices-speech
+fastapi
+Jinja2
+nltk
+numpy==1.26.4
+pydub
+python-dotenv
+python-multipart
+torch==2.2.2
+transformers==4.40.1
+uvicorn[standard]
+Werkzeug
+konlpy
+JPype1
+networkx
+scikit-learn
+sentence-transformers
