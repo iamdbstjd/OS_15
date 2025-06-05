@@ -10,3 +10,8 @@ torch==2.2.2
 transformers==4.40.1
 uvicorn[standard]
 Werkzeug
+konlpy
+JPype1
+networkx
+scikit-learn
+sentence-transformers

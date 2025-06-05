@@ -1,13 +1,19 @@
 import re
-from preprocess.text_utils import preprocess_text_for_summary
+from .textrank_summary import summarize_with_textrank 
+from ..preprocess.text_utils import preprocess_text_for_summary 
 from transformers import BartForConditionalGeneration, PreTrainedTokenizerFast
 import torch
 
-# KoBART 모델과 토크나이저 초기화 (전역에서 한 번만)
+# KoBART 모델 및 토크나이저 초기화
 model_name = "hyunwoongko/kobart"
 tokenizer = PreTrainedTokenizerFast.from_pretrained(model_name)
 model = BartForConditionalGeneration.from_pretrained(model_name)
-model.eval()  # 평가 모드
+model.eval()
+
+if torch.cuda.is_available():
+    model.to("cuda")
+else:
+    pass
 
 def split_text_by_length(text, max_length=1000):
     sentences = re.split(r'(?<=[.?!])\s+', text)
@@ -33,48 +39,79 @@ def split_text_by_length(text, max_length=1000):
 
     return chunks
 
-def summarize_text(text):
-    inputs = tokenizer(text, return_tensors="pt", max_length=1024, truncation=True)
-    summary_ids = model.generate(
-        inputs["input_ids"],
-        max_length=150,
-        min_length=50,               # 최소 길이 지정
-        num_beams=4,
-        early_stopping=True,
-        no_repeat_ngram_size=3,
-        length_penalty=2.0           # 길이 패널티로 너무 짧은 요약 방지
+def summarize_text(text: str,
+                   max_summary_length: int = 250,
+                   min_summary_length: int = 40,
+                   num_beams: int = 1,
+                   length_penalty: float = 1.5,
+                   no_repeat_ngram_size: int = 3,
+                   repetition_penalty: float = 3.0,
+                   do_sample: bool = True,
+                   top_k: int = 50,
+                   top_p: float = 0.95) -> str:
+    if not text.strip():
+        return ""
+            
+    inputs = tokenizer(text, return_tensors="pt", max_length=1024, truncation=True, padding="max_length")
+    
+    if torch.cuda.is_available():
+        inputs = {k: v.to("cuda") for k, v in inputs.items()}
+
+    try:
+        summary_ids = model.generate(
+            inputs["input_ids"],
+            attention_mask=inputs["attention_mask"],
+            max_length=max_summary_length,
+            min_length=min_summary_length,
+            num_beams=num_beams,
+            early_stopping=True,
+            no_repeat_ngram_size=no_repeat_ngram_size,
+            length_penalty=length_penalty,
+            repetition_penalty=repetition_penalty,
+            do_sample=do_sample,
+            top_k=top_k,
+            top_p=top_p
+        )
+        summary = tokenizer.decode(summary_ids[0].to("cpu"), skip_special_tokens=True)
+        return summary.strip()
+    except Exception as e:
+        return "요약 중 오류 발생: KoBART 모델 처리 실패"
+
+
+def summarize_long_text(
+    text: str,
+    textrank_params: dict = None,
+    kobart_final_max_length: int = 700,
+    kobart_final_min_length: int = 150
+    ) -> str:
+    # 1. TextRank 요약 시작
+    default_textrank_params = {
+        "num_sentences_to_select_ratio": 0.25,
+        "min_sentences": 5,
+        "max_sentences": 15,
+        "similarity_graph_threshold": 0.15,
+        "lambda_mmr": 0.5,
+        "use_mmr": True,
+        "filter_endings": True,
+        "perform_preprocessing": False
+    }
+    current_textrank_params = {**default_textrank_params, **(textrank_params or {})}
+
+    # 2. TextRank 요약 실행
+    textrank_summary = summarize_with_textrank(
+        text,
+        num_sentences_to_select_ratio=current_textrank_params["num_sentences_to_select_ratio"],
+        min_sentences=current_textrank_params["min_sentences"],
+        max_sentences=current_textrank_params["max_sentences"],
+        similarity_graph_threshold=current_textrank_params["similarity_graph_threshold"],
+        lambda_mmr=current_textrank_params["lambda_mmr"],
+        use_mmr=current_textrank_params["use_mmr"],
+        filter_endings=current_textrank_params["filter_endings"],
+        perform_preprocessing=current_textrank_params["perform_preprocessing"]
     )
-    summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
-    return summary
 
-def summarize_long_text(text):
-    print("[Main] 원본 텍스트 길이:", len(text))
+    # 3. TextRank 결과 오류 처리 및 반환
+    if not textrank_summary.strip() or "오류:" in textrank_summary or "실패" in textrank_summary or "없습니다" in textrank_summary:
+        return textrank_summary if textrank_summary.strip() and ("오류:" in textrank_summary or "실패" in textrank_summary or "없습니다" in textrank_summary) else "TextRank 요약 생성 중 문제가 발생했습니다."
 
-    # 1) 전처리
-    preprocessed_text = preprocess_text_for_summary(text)
-    print("[Main] 전처리 후 텍스트 길이:", len(preprocessed_text))
-
-    if len(preprocessed_text) < 100:
-        # 짧으면 바로 요약
-        return summarize_text(preprocessed_text)
-
-    # 2) 텍스트 분할
-    chunks = split_text_by_length(preprocessed_text, max_length=1000)
-    print(f"[Main] 분할된 chunk 개수: {len(chunks)}")
-
-    # 3) chunk별 요약
-    partial_summaries = []
-    for i, chunk in enumerate(chunks):
-        print(f"[Main] Chunk {i+1} 요약 중 (길이: {len(chunk)})...")
-        summary = summarize_text(chunk)
-        print(f"[Main] Chunk {i+1} 요약 결과 일부: {summary[:100]}...")
-        partial_summaries.append(summary)
-
-    # 4) 부분 요약들 병합 후 재요약
-    combined_summary = " ".join(partial_summaries)
-    print("[Main] 부분 요약 결과 병합 완료. 병합된 길이:", len(combined_summary))
-
-    final_summary = summarize_text(combined_summary)
-    print("[Main] 최종 요약 결과:", final_summary)
-
-    return final_summary
+    return textrank_summary 

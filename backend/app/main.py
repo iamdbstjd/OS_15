@@ -7,10 +7,12 @@ from fastapi.concurrency import run_in_threadpool
 from werkzeug.utils import secure_filename
 from pydub import AudioSegment
 
-from stt.azure_stt import transcribe_multiple_files
-from stt.audio_splitter import split_audio
-from summary.koBart_summary import summarize_long_text
-from preprocess.text_utils import preprocess_text_for_summary
+from .stt.azure_stt import transcribe_multiple_files
+from .stt.audio_splitter import split_audio 
+from .summary.koBart_summary import summarize_long_text
+from .preprocess.text_utils import preprocess_text_for_summary
+from .quiz_list.blank_quiz import generate_blank_quizzes
+from .quiz_list.OX_quiz import generate_ox_quizzes
 
 
 app = FastAPI(title="강의 음성 STT 서비스 (Azure)")
@@ -101,11 +103,27 @@ async def process_lecture_audio(audio_file: UploadFile = File(...)):
         if "요약 중 오류 발생:" in str(summary_text):
             raise HTTPException(status_code=500, detail=f"요약 처리 실패: {summary_text}")
 
-        # 7. (임시) 퀴즈 결과
-        quizzes_list = [
-            {"type": "O/X", "question": "이곳에 O/X 문제가 표시됩니다. (아직 구현되지 않음)", "answer": "미정"},
-            {"type": "빈칸", "question": "이곳에 _______ 문제가 표시됩니다. (아직 구현되지 않음)", "answer": "미정"},
-        ]
+        # 7. 퀴즈 생성
+        print("[Main] 퀴즈 생성 시작...")
+        
+        # 빈칸 퀴즈 생성 
+        blank_quizzes = await run_in_threadpool(generate_blank_quizzes, preprocessed_text, num_quizzes=5)
+        print(f"[Main] 빈칸 퀴즈 생성 완료. 생성된 퀴즈 개수: {len(blank_quizzes)}")
+
+        # O/X 퀴즈 생성 
+        ox_quizzes = await run_in_threadpool(generate_ox_quizzes, preprocessed_text, num_quizzes=5) # <-- 이 부분을 num_quizzes=5로 변경
+        print(f"[Main] O/X 퀴즈 생성 완료. 생성된 퀴즈 개수: {len(ox_quizzes)}")
+
+        # 모든 퀴즈를 합치기
+        quizzes_list = blank_quizzes + ox_quizzes
+        
+        if not quizzes_list:
+            print("[Main] 퀴즈 생성 실패 또는 생성된 퀴즈 없음. 기본 퀴즈 리스트를 사용합니다.")
+            quizzes_list = [
+                {"type": "O/X", "question": "이곳에 O/X 문제가 표시됩니다. (아직 구현되지 않음)", "answer": "미정"},
+                {"type": "빈칸", "question": "이곳에 _______ 문제가 표시됩니다. (아직 구현되지 않음)", "answer": "미정"},
+            ]
+
 
         return {
             "filename": original_filename,
