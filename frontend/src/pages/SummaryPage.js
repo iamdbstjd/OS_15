@@ -1,8 +1,15 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './PageStyles.css';
 
 function SummaryPage() {
   const summary = localStorage.getItem('summary') || '';
+  const hasSummary = summary.trim() !== '';
+  const navigate = useNavigate();
+
+  const handleGoToUpload = () => {
+    navigate('/upload');
+  };
 
   return (
     <div className="text-wrapper">
@@ -12,7 +19,16 @@ function SummaryPage() {
       </div>
 
       <div className="text-box">
-        <p className="text-content">{summary}</p>
+        {hasSummary ? (
+          <p className="text-content">{summary}</p>
+        ) : (
+          <div className="text-content center-placeholder">
+            <p className="upload-message">먼저 파일을 업로드해주세요!</p>
+            <button className="upload-btn" onClick={handleGoToUpload}>
+              업로드하러 가기
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

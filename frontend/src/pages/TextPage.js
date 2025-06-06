@@ -1,8 +1,15 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './PageStyles.css';
 
 function TextPage() {
   const transcript = localStorage.getItem('transcript') || '';
+  const hasTranscript = transcript.trim() !== '';
+  const navigate = useNavigate();
+
+  const handleGoToUpload = () => {
+    navigate('/upload');
+  };
 
   return (
     <div className="text-wrapper">
@@ -12,8 +19,18 @@ function TextPage() {
       </div>
 
       <div className="text-box">
-        <p className="text-content">{transcript}</p>
-      </div>
+  {hasTranscript ? (
+    <p className="text-content">{transcript}</p>
+  ) : (
+    <div className="text-content center-placeholder">
+      <p className="upload-message">먼저 파일을 업로드해주세요!</p>
+      <button className="upload-btn" onClick={handleGoToUpload}>
+        업로드하러 가기
+      </button>
+    </div>
+  )}
+</div>
+
     </div>
   );
 }

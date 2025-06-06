@@ -135,3 +135,144 @@
   margin-top: 20px;
   margin-left: 5px;
 }
+
+.center-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 0;
+}
+
+.upload-message {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0F1952;
+}
+
+.custom-upload-btn {
+  background-color: #4A24F1;
+  color: #ffffff;
+  padding: 10px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.quiz-type {
+  color: #2f66ff;
+  font-weight: bold;
+}
+
+.ox-buttons {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  justify-content: center;
+}
+
+.ox-button {
+  padding: 10px 15px;
+  font-size: 24px;
+  border: 2px solid #ccc;
+  border-radius: 12px;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ox-button.selected {
+  border-color: #2f66ff;
+}
+
+.ox-button.correct {
+  background-color: #d3f1ff;
+  border-color: #2f66ff;
+}
+
+.ox-button.incorrect {
+  background-color: #ff4d4d;
+  color: white;
+  border-color: #ff4d4d;
+}
+
+
+.blank-input-wrapper {
+  position: relative;
+  margin-top: 10px;
+}
+
+
+.quiz-input {
+  width: 100%;
+  padding: 8px;
+  font-size: 18px;
+  border-radius: 8px;
+  border: 2px solid #ccc;
+  text-align: center; 
+}
+
+.correct-box .quiz-input {
+  background-color: #d3f1ff;
+  border-color: #2f66ff;
+  text-align: center; 
+}
+
+.incorrect-box .quiz-input {
+  background-color: #ffcccc;
+  border-color: #ff4d4d;
+  text-align: center; 
+}
+
+.mark {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+}
+
+.quiz-question.highlight {
+  background-color: #d3f1ff;
+  padding: 5px;
+  border-radius: 8px;
+}
+
+.score-box {
+  margin-top: 20px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  color: #2f66ff;
+}
+
+.blank-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+
+.input-mark-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+
+.quiz-input {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 1rem;
+  border: 2px solid #ccc;
+  border-radius: 6px;
+}
+
+.mark {
+  margin-left: 8px;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
