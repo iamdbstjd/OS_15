@@ -54,8 +54,13 @@ function QuizPage() {
   };
 
   const isCorrect = (quiz, index) => {
-    const correct = quiz.answer.toString().trim().toLowerCase();
-    const user = userAnswers[index].toString().trim().toLowerCase();
+    const answer = quiz?.answer;
+    const userAnswer = userAnswers[index];
+
+    if (answer == null || userAnswer == null) return false;
+
+    const correct = answer.toString().trim().toLowerCase();
+    const user = userAnswer.toString().trim().toLowerCase();
     return correct === user;
   };
 
