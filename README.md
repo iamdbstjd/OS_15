@@ -4,7 +4,7 @@
 조원: 박수빈, 변윤성, 이지호</span>
 <br>
 
-<img src="images/StudyWithMe.png" alt="웹 퀴즈 화면"/>
+<img src="images/StudywithMe_example.jpg" alt="웹 퀴즈 화면"/>
 
 <br>
 
